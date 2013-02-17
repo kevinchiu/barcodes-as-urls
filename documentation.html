@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<title>Barcodes as URLs</title>
+<meta name="author" content="Kevin Chiu">
+<meta name="keywords" content="URLs, barcodes">
+<meta name="description" content="Supporting 2D barcodes as URLs on the
+iPhone">
+</head>
+<body bgcolor=white>
+
+<h1>Barcodes as URLs</h1>
+<address>
+<a
+href="http://www.cs.columbia.edu/mice/persons/showPerson.php?personID=15932&base=%2Fmice%2Fpersons%2F&">Kevin
+Chiu</a><br> Columbia University<br>
+
+New York, NY<br>
+USA<br>
+<a href="mailto:kgc2113@columbia.edu">kgc2113@columbia.edu</a>
+</address>
+
+<h2>Abstract</h2>
+<p>This program recognizes barcodes that contain URLs and
+launches the iPhone's browser with any URL that is detected.
+
+<h2>System requirements</h2>
+<ul>
+<li>Jailbroken iPhone</li>
+<li>Computer</li>
+<li>Wifi access point</li>
+</ul>
+<h2>Installation instructions</h2>
+<h3>Installation Preparation</h3>
+<ol>
+<li>On your jailbroken iPhone, use the Installer application to install
+the BSD subsystem and SSH Server.</li> </ol>
+<h3>Application installation</h3>
+<ol>
+<li>Go to Home Screen > Settings > Wifi and connect to a Wifi access
+point.</li>
+<li>Press the right arrow next to the access point you are connected to.
+Record the IP address of your phone.</li>
+<li>Connect to the same access point using a computer.</li>
+<li>cd to the directory with the Reader.app application.</li>
+<li>Issue the following command where IP is the phone's IP address you
+recorder earlier. <pre>scp -r Reader.app root@IP:/Applications</pre>
+Your password is most likely "alpine" without the quotes. Alternatively,
+you can use the SFTP program of your choice to do this transfer.</li>
+<li>Reboot the phone.</li>
+</ol>
+
+<h2>Operation</h2>
+<p>To launch the app, touch it from the home screen. To recognize a
+barcode, position the barcode into the field of view of the camera, and
+press the screen. The screen will freeze while the application is
+recognizing the barcode. If the recognition succeeds, Safari will launch
+the URL in the barcode. If the recognition fails, the camera preview
+will be unfrozen and you will be able to try the recognition again.
+
+<h2>Program internal operation</h2>
+<p>Internally, the application uses the iPhone's camera to take a
+picture. The picture is then sent to a recognizer where it is decoded,
+if possible. When the picture is decoded, the decoded URL is passed to
+Safari, the phone's internal browser.
+
+<h2>Things that do not work</h2>
+<p>The application has a very high failure rate under real world
+conditions. Also, it only works with URLs. Recognizing any other piece
+of encoded data may have unexpected results.
+
+<h2>Useful enhancements</h2>
+<p>It may be helpful to implement a preprocessing step in which the <a
+href="http://fourier.eng.hmc.edu/e180/handouts/color2/node9.html">retinex</a>
+color constancy algorithm is performed. This would enhance the
+application's performance under difficult lighting situations.
+
+<p>Also, it would be nice if the application handled things other than
+URLs intelligently. For example, if address book information were
+encoded in the barcode, then a new contact entry should be created on
+the phone.
+
+<h2>Acknowledgements for code and ideas borrowed</h2>
+<p>This program is largely based on the <a href="http://qrcode.sourceforge.jp/">Open Source
+QR Code Library</a>.
+	
+</body></html>
+	

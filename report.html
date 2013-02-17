@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<title>Barcodes as URLs</title>
+<meta name="author" content="Kevin Chiu">
+<meta name="keywords" content="URLs, barcodes">
+<meta name="description" content="Supporting 2D barcodes as URLs on the
+iPhone">
+</head>
+<body bgcolor=white>
+
+<h1>Barcodes as URLs</h1>
+<address>
+<a
+href="http://www.cs.columbia.edu/mice/persons/showPerson.php?personID=15932&base=%2Fmice%2Fpersons%2F&">Kevin
+Chiu</a><br> Columbia University<br>
+
+New York, NY<br>
+USA<br>
+<a href="mailto:kgc2113@columbia.edu">kgc2113@columbia.edu</a>
+</address>
+
+
+<h2>Abstract</h2>
+
+<p>In this project, we developed a 2D barcode-reading application for
+the iPhone that is capable of reading URLs from barcodes and launching
+them using the phone's built-in browser.
+
+<h2>Introduction</h2>
+<p>In this project, we developed a 2D barcode reader for the iPhone that
+can recognize URLs embedded in QR codes, and launch URLs in the phone's
+built-in browser. In this report, we will discuss <a
+href=#related_work>Related Work</a>, the <a
+href=#background>Background</a> of the iPhone and 2d barcodes, the
+program's <a href=#architecture>Architecture</a>, <a
+href=#program_documentation>Program Documentation</a>, our <a
+href=#task_list>Task List</a>, and <a href=#references>References.
+
+
+<h2><a name="related_work">Related Work</a></h2>
+
+<p>There are many 2D barcode readers and 2D barcode-reading support
+libraries in existence. Here is a list of some of them. The ones that
+have source code available are marked by an asterisk, *.
+
+<ul>
+<li><a href="http://reader.kaywa.com/">Kaywa Reader</a> is one of the
+most impressive commercial readers. Notably, it can recognize codes in a
+video stream from the phone's camera. The user never needs to press a
+button to take a picture.</li>
+<li><a href="http://www.libdmtx.org/">Libdmtx</a>* is an open source
+(LGPL) library for decoding Datamatrix codes. It is designed to be
+highly portable, and it is written in C. It was recently made available
+again after a year-long break.</li>
+<li><a href="http://code.google.com/p/zxing/">ZXing</a>* is an open
+source (Apache 2.0) application recently released by Google that aims to
+"support decoding of QR Codes, Data Matrix, and the UPC family of 1D
+barcodes."</li>
+<li><a href="http://qrcode.sourceforge.jp/">Open Source QR Code
+Library</a>* - This is an open source decoding library from Japan. Our
+application is based on this project.</li> </ul>
+
+<h2><a name="background">Background</a></h2>
+<h3>iPhone</h3>
+<p>The iPhone is a mobile phone developed by Apple Incorporated.
+Although it is officially a closed platform, the community that has
+rallied around the phone has made great strides in making the platform a
+viable programming environment.
+
+<h3>2D Barcodes</h3>
+<center>
+<img src="google.png" />
+<br>http://google.com encoded in a QR Code.
+<br>
+<br>
+<img src="googledmtx.png" />
+<br>http://google.com encoded in a Datamatrix code.
+</center>
+<p>2D barcodes, like the ones pictured above, can hold much more
+information than the typical 1D barcodes. Instead of containing a string
+of numbers, 2D barcodes typically contain much richer information, like
+URLs, contact information, and text snippets that can be hundreds of
+characters long (or even longer).
+
+<p>There are many formats of 2D barcode in use today. The majority of 2D
+barcodes are in QR Code format, but there is a growing minority of
+Datamatrix codes coming into existence due to Datamatrix's superior data
+density and its support in the industrial / government sectors.
+
+<h2><a name="architecture">Architecture</a></h2>
+
+<p>The application is written in Objective-C and and is approximately
+7000 lines long.
+
+<p>The application is split into two halves.
+
+<p>The first half is responsible for accessing the camera, setting up
+the UI, and using any data that comes out of the second half of the
+application. It is also responsible for launching the iPhone's web
+browser once a URL is detected. Additionally, it contains a bit of
+mystery code required to run on the iPhone.
+	
+<p>The second half is the QR code recognizer. It receives image data
+from the first half of the application and communicates back the decoded
+information.
+
+<h3>Path of Execution</h3>
+<p>The program first gains control in the ReaderApplication.m file in
+the method applicationDidFinishLaunching. Here, the main view for the
+application is set up.
+
+<p>After applicationDidFinishLaunching returns, the camera has been
+activated, and the only input the user can provide is a touch. Touches
+are detected in the mouseDown method. Once called, the mouseDown method
+immediately calls the takePicture method.
+
+<p>The takePicture method takes a picture as long as the application is
+not already trying to decode a previous picture. Once the picture is
+taken, control is passed to cameraController which then passes the
+preview object to the process method.
+
+<p>The process method initializes a new QRCodeDecoder and QRCodeImage.
+The QRCodeImage is initialized to the picture argument using a
+CoreGraphics bitmap context. The QRCodeDecoder is initialized with a
+retry counter and results list. The image is then passed to the decoder.
+The decoder first searches for a finder pattern, then orients its search
+based on the location of the finder pattern. From there, the standard
+search routine is performed and the data is decoded. If the decoder
+succeeds, then a string is passed back containing the contents of the 2D
+barcode and control is passed to the succeed method. If it fails, then
+an exception is thrown, caught, and control is passed to the failure
+method.
+
+<p>Assuming the barcode is successfully decoded, the success method is
+called, which converts the string into a URL object and sends it to the
+built-in browser.
+
+<h3>Failed Architectures</h3>
+<h4>2-Format simultaneous recognition with libdmtx</h4>
+<p>The example reader program that comes with libdmtx already supported
+input in PNG and TIFF format. I modified it slightly to remove the
+dependency on the TIFF decoder library. Then, I used Erica Sadun's <a
+href="http://ericasadun.com/ftp/EricaUtilities/snap">snap</a>
+application to take screen shots of the camera preview in PNG format.
+The idea was to recognize both QR codes and Datamatrix codes in
+parallel. However, when trying to use Erica's snap program from inside
+the Reader application, system-specific conflicts occurred. It seems
+that when two "purple" applications are launched the one launched last
+crashes with an error. </li>
+</ul>
+
+<h2><a name="program_documentation"></a><a
+href="documentation.html">Program Documentation</a></h2>
+
+<h2><a name="task_list">Task List</a></h2>
+
+<ul>
+	<li>Application can visit a web site.</li>
+	<li>Application can access the camera.</li>
+		<ul> <li>This step was made possible by resources <a
+        href=#1>[1]</a> provided by Erica Sadun</li> </ul>
+	<li>Application can recognize a 2d barcode.
+		<ul>
+			<li>This step was made possible by the <a
+            href="http://qrcode.sourceforge.jp/">Open Source QR Code
+            Library</a></li>
+		</ul>
+</ul>
+
+<h2><a name="references">References</a></h2>
+
+<dl compact="compact">
+<dt><a name="1">1</a>
+</dt><dd>Erica Sadun, <em><a
+href="http://ericasadun.com/iPhoneDocs112">Oktoberfest
+1.1.2 Frameworks</a></em>, <a
+href="http://ericasadun.com">http://ericasadun.com</a>, Checked on
+December 21, 2007.
+
+
+</dd></dl>
+</body>
+</html>
